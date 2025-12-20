@@ -1,0 +1,24 @@
+{
+  "name": "youtubebackend",
+  "version": "1.0.0",
+  "description": "complete backend for youtube",
+  "keywords": [
+    "backend",
+    "youtube"
+  ],
+  "license": "ISC",
+  "author": "Digvijay Patel",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "prettier": "^3.7.4"
+  }
+}
