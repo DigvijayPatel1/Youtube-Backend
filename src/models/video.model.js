@@ -37,4 +37,4 @@ const videoSchema = Schema({
 
 videoSchema.pulgin(mongooseAggregatePaginate)
 
-export const Video = Schema.model("Video", videoSchema)
+export const Video = mongoose.model("Video", videoSchema)

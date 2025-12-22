@@ -41,14 +41,14 @@ const userSchema = Schema({
     },
     watchhistory: [
         {
-            tpye: Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Video"
         }
     ]
 }, {timestamps: true})
 
 // hash the password on save
-Schema.pre("save", async function (){
+userSchema.pre("save", async function (){
     if (!this.isModified("password")) return next()
     this.password = await hash(this.password, 10)
     next()
@@ -90,4 +90,4 @@ userSchema.methods.generateRefreshToken = function (){
 }
 
 
-export const User = Schema.model("User", userSchema)
+export const User = mongoose.model("User", userSchema)
