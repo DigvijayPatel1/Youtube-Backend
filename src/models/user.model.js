@@ -21,14 +21,13 @@ const userSchema = Schema({
     },
     fullname: {
         type: String,
-        unique: true,
         trim: true,
-        lowercase: true,
         required: true,
         index: true
     },
     avatar: {
-        type: String
+        type: String,
+        required: true
     },
     coverImage: {
         type: String
@@ -38,8 +37,7 @@ const userSchema = Schema({
         required: true
     },
     refreshToken: {
-        type: String,
-        required: true
+        type: String
     },
     watchhistory: [
         {
