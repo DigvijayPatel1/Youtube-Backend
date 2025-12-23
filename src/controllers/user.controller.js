@@ -4,6 +4,31 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
+// generating the tokens
+const generateTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+
+        if (!user) throw new ApiError("user not found", 404)
+
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        if (!accessToken || !refreshToken){
+            throw new ApiError("generation of tokens failed", 500)
+        }
+
+        // updating and saving the refresh token
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
+
+        return {accessToken, refreshToken}
+    } catch (error) {
+        throw error
+    }
+    
+}
+
 const registerUser = asyncHandler(async (req, res) => {
     const {username, password, email, fullname} = req.body // getting the user details
 
@@ -65,6 +90,46 @@ const registerUser = asyncHandler(async (req, res) => {
         new ApiResponse(201, createdUser, "User registered Successfully")
     )
 
+})
+
+const LoginUser = asyncHandler(async (req, res) => {
+    // getting the data from user
+    const {username, password, email} = req.body
+
+    if (!email || !username){ // checking is data sent
+        throw new ApiError("Username or email is required", 400)
+    }
+
+    const user = await User.findOne({ // find user from db
+        $or: [{email}, {username}]
+    })
+
+    if (!user){
+        throw new ApiError("Invalid username or email", 401)
+    }
+
+    const isPasswordValid = await user.isPasswordValid(password) // checking the password is valid or not
+
+    if (!isPasswordValid){
+        throw new ApiError("Invalid password", 401)
+    }
+
+    const {accessToken, refreshToken} = await generateTokens(user._id) // generating the tokens
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken") // getting the updated data from the db
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    // sending the success status with cookies
+    return res.status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(200, loggedInUser, "user logged in successfully")
+        )
 })
 
 export {registerUser}
