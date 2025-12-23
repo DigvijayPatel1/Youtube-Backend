@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js"
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import jwt from "jsonwebtoken"
 
 // generating the tokens
 const generateTokens = async (userId) => {
@@ -161,10 +162,60 @@ const logoutUser = asyncHandler(async (req, res) => {
         )
 })
 
+// update the tokens
+const refreshAccessToken = asyncHandler( async (req, res) => {
+    // get the refresh token from the cookie
+    const incomingRefreshToken = req.cookie?.refreshToken || req.body?.refreshAccessToken
 
+    if (!incomingRefreshToken){
+        throw new ApiError("Invalid refresh token", 401)
+    }
+
+    try {
+        // check the new refresh token 
+        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+    
+        if (!decodedToken){
+            throw new ApiError("Invalid refresh token", 401)
+        }
+    
+        // get the user from db
+        const user = await User.findById(decodedToken?._id)
+    
+        if (!user){
+            throw new ApiError("User found using refresh Token")
+        }
+
+        if (incomingRefreshToken !== user.refreshToken){
+            throw new ApiError("Refresh token expired or invalid", 401)
+        }
+    
+        // generate the new access or refresh token
+        const {accessToken, refreshToken} = await generateTokens(user._id)
+    
+        options = {
+            httpOnly: true,
+            secure: true
+        }
+    
+        return res.status(200)
+        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, options)
+        .json(
+            new ApiResponse(200, {
+                newAccessToken: accessToken,
+                refreshToken
+            }, "Token refreshed successfully")
+        )
+    } catch (error) {
+        throw new ApiError(error?.message || "Invalid or expired refresh token", 401)
+    }
+
+})
 
 export {
     registerUser,
     logoutUser,
-    LoginUser
+    LoginUser,
+    refreshAccessToken
 }
