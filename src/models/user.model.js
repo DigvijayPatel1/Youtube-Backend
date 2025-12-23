@@ -49,9 +49,8 @@ const userSchema = Schema({
 
 // hash the password on save
 userSchema.pre("save", async function (){
-    if (!this.isModified("password")) return next()
+    if (!this.isModified("password")) return
     this.password = await hash(this.password, 10)
-    next()
 })
 
 // check if password is matching or not with the saved password
