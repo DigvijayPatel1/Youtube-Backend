@@ -8,7 +8,7 @@ const verifyJWT = async (req, _, next) => {
 
         if (!token) throw new ApiError("Unauthorized request", 401) 
         
-        const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET) // get the user data if token is valid
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET) // get the user data if token is valid
 
         if (!decodedToken) throw new ApiError("invalid Token", 401)
         
