@@ -213,7 +213,7 @@ const refreshAccessToken = asyncHandler( async (req, res) => {
 
 })
 
-// 
+// changing the current password
 const changeCurrentPassword = asyncHandler( async (req, res) => {
     // getting the data
     const {oldPassword, newPassword} = req.body
@@ -244,6 +244,7 @@ const changeCurrentPassword = asyncHandler( async (req, res) => {
 
 })
 
+// getting the current user
 const getCurrentUser = asyncHandler( async (req, res) => {
     return res.status(200)
     .json(
@@ -253,6 +254,37 @@ const getCurrentUser = asyncHandler( async (req, res) => {
             "user get successfully"
         )
     )
+})
+
+// updating the account details
+const updateAccountDetails = asyncHandler( async (req, res) => {
+    const {fullname, email} = req.body
+
+    if (!fullname || !email){
+        throw new ApiError("Full name and email are required", 400)
+    }
+
+    const user = await User.findByIdAndUpdate(req?.user._id,
+        {
+            $set: {
+                email,
+                fullname
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken")
+
+    if (!user){
+        throw new ApiError("User not found", 404)
+    }
+
+    res.status(200)
+    .json(
+        new ApiResponse(200, user, "Account details updated successfully")
+    )
+
 })
 
 
