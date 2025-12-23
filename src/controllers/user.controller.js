@@ -26,9 +26,10 @@ const generateTokens = async (userId) => {
     } catch (error) {
         throw error
     }
-    
+
 }
 
+// registering the user 
 const registerUser = asyncHandler(async (req, res) => {
     const {username, password, email, fullname} = req.body // getting the user details
 
@@ -92,6 +93,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
+// log in the user
 const LoginUser = asyncHandler(async (req, res) => {
     // getting the data from user
     const {username, password, email} = req.body
@@ -132,4 +134,37 @@ const LoginUser = asyncHandler(async (req, res) => {
         )
 })
 
-export {registerUser}
+// logout the user
+const logoutUser = asyncHandler(async (req, res) => {
+    User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(
+            new ApiResponse(200, {}, "User loggedOut successfully")
+        )
+})
+
+
+
+export {
+    registerUser,
+    logoutUser,
+    LoginUser
+}
